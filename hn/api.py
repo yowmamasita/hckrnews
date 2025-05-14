@@ -1,12 +1,9 @@
 import datetime
 import json
 import requests
-import pytz
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 
-def get_pdt_today():
-    """Get today's date in PDT timezone."""
-    return datetime.datetime.now(pytz.timezone('America/Los_Angeles')).date()
+from .utils import get_pdt_today, format_date_for_url, format_date_for_cache_key
 
 class HackerNewsAPI:
     BASE_URL = "https://hckrnews.com/data/{}.js"
@@ -18,8 +15,8 @@ class HackerNewsAPI:
         if date is None:
             date = get_pdt_today()
             
-        date_str = date.strftime("%Y%m%d")
-        cache_key = date.strftime("%Y-%m-%d")
+        date_str = format_date_for_url(date)
+        cache_key = format_date_for_cache_key(date)
         
         if cache_key in cls._story_cache:
             return cls._story_cache[cache_key]
@@ -39,35 +36,30 @@ class HackerNewsAPI:
             cls._story_cache[cache_key] = data
             return data
             
-        except requests.exceptions.HTTPError:
-            return []
-        except requests.exceptions.ConnectionError:
-            return []
-        except requests.exceptions.Timeout:
-            return []
-        except requests.exceptions.RequestException:
-            return []
-        except json.JSONDecodeError:
-            return []
-        except Exception:
+        except (requests.exceptions.HTTPError, 
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+                requests.exceptions.RequestException,
+                json.JSONDecodeError,
+                Exception):
             return []
     
     @classmethod
     def cache_stories(cls, date: datetime.date, stories: List[Dict[str, Any]]) -> None:
         """Cache stories for a specific date."""
-        cache_key = date.strftime("%Y-%m-%d")
+        cache_key = format_date_for_cache_key(date)
         cls._story_cache[cache_key] = stories
         
     @classmethod
     def get_cached_stories(cls, date: datetime.date) -> Optional[List[Dict[str, Any]]]:
         """Get stories from cache if they exist."""
-        cache_key = date.strftime("%Y-%m-%d")
+        cache_key = format_date_for_cache_key(date)
         return cls._story_cache.get(cache_key)
     
     @classmethod
     def clear_cache_for_date(cls, date: datetime.date) -> bool:
         """Clear cache for a specific date."""
-        cache_key = date.strftime("%Y-%m-%d")
+        cache_key = format_date_for_cache_key(date)
         if cache_key in cls._story_cache:
             del cls._story_cache[cache_key]
             return True
