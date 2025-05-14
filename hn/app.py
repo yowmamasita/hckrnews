@@ -1,4 +1,5 @@
 import sys
+import os
 import webbrowser
 import time
 from datetime import date, timedelta, datetime
@@ -13,6 +14,8 @@ from textual.keys import Keys
 from rich.style import Style
 from rich.text import Text
 from rich.spinner import Spinner
+
+from .scraper import update_stories
 
 class HNFooter(Footer):
     """Custom footer that ensures the most important bindings are always visible"""
@@ -93,8 +96,8 @@ class HackerNewsApp(App):
 
     def __init__(self):
         super().__init__()
-        # Set default date as 2 days ago since that's the latest available data
-        self.current_date = date.today() - timedelta(days=2)
+        # Set default date to today since we now have current data
+        self.current_date = date.today()
         self.filter_mode = "all"     # Default filter mode - show all stories
         self.sort_mode = "date"      # Default sort mode (points, comments, or date)
         self.stories = []
@@ -123,6 +126,18 @@ class HackerNewsApp(App):
         loading = self.query_one("#loading")
         loading.display = False
 
+        # Update first 2 days of stories when the app starts
+        self.show_loading_animation()
+        self.update_title("Updating stories cache...")
+        
+        # Update stories on app start (fetch and cache latest 2 days)
+        try:
+            print("Updating stories cache for today and yesterday...")
+            updated_files = update_stories(days=2)
+            print(f"Updated files: {updated_files}")
+        except Exception as e:
+            print(f"Error updating stories cache: {e}")
+        
         self.refresh_stories()
         self.set_timer(0.5, self.ensure_table_focus)
 
@@ -132,12 +147,27 @@ class HackerNewsApp(App):
         date_str = self.current_date.strftime("%Y-%m-%d")
         if date_str in self.story_cache:
             del self.story_cache[date_str]
+            
+        # If refreshing today or yesterday, update from the website
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+        
+        if self.current_date == today or self.current_date == yesterday:
+            self.show_loading_animation()
+            self.update_title("Updating from hckrnews.com...")
+            day_diff = (today - self.current_date).days
+            try:
+                # Update just this specific day
+                update_stories(days=1, start_day=day_diff)
+            except Exception as e:
+                print(f"Error updating stories during refresh: {e}")
+                
         self.refresh_stories()
 
     def action_next_day(self) -> None:
         """Go to the next day."""
-        # Latest available data is 2 days ago
-        latest_available = date.today() - timedelta(days=2)
+        # Latest available data is today
+        latest_available = date.today()
 
         if self.current_date < latest_available:
             self.current_date += timedelta(days=1)
@@ -217,16 +247,37 @@ class HackerNewsApp(App):
             return
 
         if self.sort_mode == "points":
-            self.stories.sort(key=lambda x: int(x.get("points") or 0), reverse=True)
+            self.stories.sort(key=lambda x: self._get_int_value(x, "points"), reverse=True)
         elif self.sort_mode == "comments":
-            self.stories.sort(key=lambda x: int(x.get("comments") or 0), reverse=True)
+            self.stories.sort(key=lambda x: self._get_int_value(x, "comments"), reverse=True)
         elif self.sort_mode == "date":
-            self.stories.sort(key=lambda x: int(x.get("time") or 0), reverse=True)
+            self.stories.sort(key=lambda x: self._get_int_value(x, "time"), reverse=True)
+    
+    def _get_int_value(self, story, key):
+        """Helper to safely get integer values from story dictionary."""
+        value = story.get(key)
+        
+        # Handle value based on its type
+        if isinstance(value, int):
+            return value
+        elif isinstance(value, str) and value.isdigit():
+            return int(value)
+        else:
+            return 0
 
     def refresh_stories(self) -> None:
         """Fetch and display stories for the current date."""
-        # Check if we already have cached data for this date
+        # Format the date string for API and caching (YYYY-MM-DD for cache key)
         date_str = self.current_date.strftime("%Y-%m-%d")
+        date_str_file = self.current_date.strftime("%Y%m%d")  # Format for file name
+        
+        print(f"Refreshing stories for {date_str} (file: {date_str_file})")
+        
+        # Check if data directory exists, create if it doesn't
+        data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+        os.makedirs(data_dir, exist_ok=True)
+        
+        # Check if we already have cached data for this date
         if date_str in self.story_cache:
             # Use cached data without loading animation
             self.stories = self.story_cache[date_str]
@@ -344,12 +395,22 @@ class HackerNewsApp(App):
             if not title:
                 continue
 
-            # Handle cases where points or comments might be None
+            # Handle cases where points or comments might be None, empty string, or already an int
             points = story.get("points")
-            points = int(points) if points is not None else 0
+            if isinstance(points, int):
+                points = points  # Already an int, keep as is
+            elif points and (isinstance(points, str) and points.isdigit()):
+                points = int(points)
+            else:
+                points = 0
 
             comments = story.get("comments")
-            comments = int(comments) if comments is not None else 0
+            if isinstance(comments, int):
+                comments = comments  # Already an int, keep as is
+            elif comments and (isinstance(comments, str) and comments.isdigit()):
+                comments = int(comments)
+            else:
+                comments = 0
 
             points_comments = f"{points} pts · {comments} comments"
 

@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 import requests
 from typing import Dict, List, Optional, Any, Tuple
 
@@ -13,7 +14,24 @@ class HackerNewsAPI:
             date = datetime.date.today()
             
         date_str = date.strftime("%Y%m%d")
+        
+        # First try to load from local data directory
+        local_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", f"{date_str}.js")
+        if os.path.exists(local_file):
+            try:
+                with open(local_file, 'r') as f:
+                    data = json.load(f)
+                if isinstance(data, list):
+                    print(f"Loaded {len(data)} stories from local file for {date_str}")
+                    return data
+            except Exception as e:
+                print(f"Error reading local file for {date_str}: {e}")
+        else:
+            print(f"No local file found for {date_str} at {local_file}")
+        
+        # If local file doesn't exist or has invalid data, fetch from API
         url = HackerNewsAPI.BASE_URL.format(date_str)
+        print(f"Fetching from API: {url}")
         
         try:
             headers = {"User-Agent": "HackerNewsClient/1.0"}

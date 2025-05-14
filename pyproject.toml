@@ -8,6 +8,7 @@ dependencies = [
     "requests>=2.32.3",
     "rich>=14.0.0",
     "textual>=3.2.0",
+    "beautifulsoup4>=4.12.3",
 ]
 
 [project.scripts]
