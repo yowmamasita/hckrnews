@@ -1,12 +1,11 @@
 """
 HackerNews scraper module for fetching and parsing stories from hckrnews.com.
 """
-import os
-import json
 import datetime
 import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any, Optional
+from .api import HackerNewsAPI
 
 def fetch_stories(date_str: Optional[str] = None) -> str:
     """Fetch HTML from hckrnews.com for a given date."""
@@ -114,21 +113,6 @@ def parse_stories(html: str) -> List[Dict[str, Any]]:
     
     return stories
 
-def save_stories(stories: List[Dict[str, Any]], date: datetime.date) -> None:
-    """Save stories to a JSON file in the format expected by the API."""
-    date_str = date.strftime("%Y%m%d")
-    
-    # Create data directory if it doesn't exist
-    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-    os.makedirs(data_dir, exist_ok=True)
-    
-    # Write the data as JSON in a JS file
-    file_path = os.path.join(data_dir, f"{date_str}.js")
-    with open(file_path, 'w') as f:
-        json.dump(stories, f, indent=2)
-    
-    return file_path
-
 def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
     """Update stories for the specified number of days.
     
@@ -137,16 +121,18 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
         start_day: Day offset to start from (0 = today, 1 = yesterday, etc.)
         
     Returns:
-        List of paths to the updated files
+        List of date strings that were updated in the in-memory cache
     """
-    updated_files = []
+    updated_dates = []
     
     # If we're updating today and yesterday in one go, we can optimize by fetching once
     if start_day == 0 and days >= 2:
         today = datetime.date.today()
         yesterday = today - datetime.timedelta(days=1)
         
-        # Format dates for filenames
+        # Format dates for cache keys
+        today_cache_key = today.strftime("%Y-%m-%d")
+        yesterday_cache_key = yesterday.strftime("%Y-%m-%d")
         today_str = today.strftime("%Y%m%d")
         yesterday_str = yesterday.strftime("%Y%m%d")
         
@@ -164,27 +150,27 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
             
             print(f"Found {len(today_stories)} stories for today and {len(yesterday_stories)} stories for yesterday")
             
-            # Remove the temporary from_today field before saving
+            # Remove the temporary from_today field before caching
             for story in today_stories + yesterday_stories:
                 if "from_today" in story:
                     del story["from_today"]
             
-            # Save today's stories
+            # Store in API's in-memory cache
             if today_stories:
-                file_path = save_stories(today_stories, today)
-                updated_files.append(file_path)
-                print(f"Successfully saved {len(today_stories)} stories for {today_str}")
+                HackerNewsAPI.cache_stories(today, today_stories)
+                updated_dates.append(today_cache_key)
+                print(f"Successfully cached {len(today_stories)} stories for {today_str}")
             
-            # Save yesterday's stories
             if yesterday_stories:
-                file_path = save_stories(yesterday_stories, yesterday)
-                updated_files.append(file_path)
-                print(f"Successfully saved {len(yesterday_stories)} stories for {yesterday_str}")
+                HackerNewsAPI.cache_stories(yesterday, yesterday_stories)
+                updated_dates.append(yesterday_cache_key)
+                print(f"Successfully cached {len(yesterday_stories)} stories for {yesterday_str}")
             
             # If we need more days, handle them individually
             for i in range(2, start_day + days):
                 date = today - datetime.timedelta(days=i)
                 date_str = date.strftime("%Y%m%d")
+                cache_key = date.strftime("%Y-%m-%d")
                 print(f"Fetching stories for {date_str}...")
                 
                 try:
@@ -192,14 +178,15 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
                     html = fetch_stories(date_str)
                     stories = parse_stories(html)
                     
-                    # Remove the temporary from_today field before saving
+                    # Remove the temporary from_today field before caching
                     for story in stories:
                         if "from_today" in story:
                             del story["from_today"]
                     
-                    file_path = save_stories(stories, date)
-                    updated_files.append(file_path)
-                    print(f"Successfully saved {len(stories)} stories for {date_str}")
+                    # Store in API's in-memory cache
+                    HackerNewsAPI.cache_stories(date, stories)
+                    updated_dates.append(cache_key)
+                    print(f"Successfully cached {len(stories)} stories for {date_str}")
                 except Exception as e:
                     print(f"Error updating stories for {date_str}: {e}")
         
@@ -213,6 +200,7 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
             
             # Format for URL path needs to be YYYYMMDD
             date_str = date.strftime("%Y%m%d")
+            cache_key = date.strftime("%Y-%m-%d")
             print(f"Fetching stories for {date_str}...")
             
             try:
@@ -225,15 +213,16 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
                 if i == 0:
                     stories = [story for story in stories if story.get("from_today")]
                 
-                # Remove the temporary from_today field before saving
+                # Remove the temporary from_today field before caching
                 for story in stories:
                     if "from_today" in story:
                         del story["from_today"]
                 
-                file_path = save_stories(stories, date)
-                updated_files.append(file_path)
-                print(f"Successfully saved {len(stories)} stories for {date_str}")
+                # Store in API's in-memory cache
+                HackerNewsAPI.cache_stories(date, stories)
+                updated_dates.append(cache_key)
+                print(f"Successfully cached {len(stories)} stories for {date_str}")
             except Exception as e:
                 print(f"Error updating stories for {date_str}: {e}")
     
-    return updated_files
+    return updated_dates

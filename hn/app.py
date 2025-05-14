@@ -1,5 +1,4 @@
 import sys
-import os
 import webbrowser
 import time
 from datetime import date, timedelta, datetime
@@ -103,9 +102,6 @@ class HackerNewsApp(App):
         self.stories = []
         self.api = HackerNewsAPI()
 
-        # Cache of stories by date to avoid refetching
-        self.story_cache = {}
-
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
@@ -126,27 +122,34 @@ class HackerNewsApp(App):
         loading = self.query_one("#loading")
         loading.display = False
 
-        # Update first 2 days of stories when the app starts
+        # Show loading animation immediately
         self.show_loading_animation()
         self.update_title("Updating stories cache...")
         
+        # Schedule the initial data load for after the UI is mounted
+        self.set_timer(0.1, self.initial_load)
+    
+    def initial_load(self) -> None:
+        """Initial data load when the app starts."""
         # Update stories on app start (fetch and cache latest 2 days)
         try:
             print("Updating stories cache for today and yesterday...")
-            updated_files = update_stories(days=2)
-            print(f"Updated files: {updated_files}")
+            updated_dates = update_stories(days=2)
+            print(f"Updated cache for dates: {updated_dates}")
+            
+            # Only after update is complete, refresh the display
+            self.load_new_stories()
         except Exception as e:
             print(f"Error updating stories cache: {e}")
-        
-        self.refresh_stories()
+            # Even if update fails, try to refresh from whatever might be in the cache
+            self.refresh_stories()
+            
         self.set_timer(0.5, self.ensure_table_focus)
 
     def action_refresh(self) -> None:
         """Refresh the current stories."""
         # Remove from cache to force refresh
-        date_str = self.current_date.strftime("%Y-%m-%d")
-        if date_str in self.story_cache:
-            del self.story_cache[date_str]
+        self.api.clear_cache_for_date(self.current_date)
             
         # If refreshing today or yesterday, update from the website
         today = date.today()
@@ -269,18 +272,14 @@ class HackerNewsApp(App):
         """Fetch and display stories for the current date."""
         # Format the date string for API and caching (YYYY-MM-DD for cache key)
         date_str = self.current_date.strftime("%Y-%m-%d")
-        date_str_file = self.current_date.strftime("%Y%m%d")  # Format for file name
         
-        print(f"Refreshing stories for {date_str} (file: {date_str_file})")
-        
-        # Check if data directory exists, create if it doesn't
-        data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-        os.makedirs(data_dir, exist_ok=True)
+        print(f"Refreshing stories for {date_str}")
         
         # Check if we already have cached data for this date
-        if date_str in self.story_cache:
+        cached_stories = self.api.get_cached_stories(self.current_date)
+        if cached_stories:
             # Use cached data without loading animation
-            self.stories = self.story_cache[date_str]
+            self.stories = cached_stories
             self.sort_stories()
             self.update_title()
             self.populate_table(refresh_data=True)
@@ -304,23 +303,18 @@ class HackerNewsApp(App):
 
     def load_new_stories(self) -> None:
         """Load new (non-cached) stories for the current date."""
-        date_str = self.current_date.strftime("%Y-%m-%d")
-
-        # Fetch new data
+        # Fetch new data using the API (which automatically caches)
         self.stories = self.api.get_stories(self.current_date)
-
-        # Cache the result
-        if self.stories:
-            self.story_cache[date_str] = self.stories
-
+        
+        # Sort the stories right away
+        self.sort_stories()
+        
         # Allow loading animation to show for at least a short time
         self.set_timer(0.3, self.finish_loading)
 
     def finish_loading(self) -> None:
         """Called when data loading is complete."""
-        # Sort the fetched stories
-        self.sort_stories()
-
+        # Stories have already been sorted in load_new_stories
         # Update UI
         self.update_stories_complete()
 

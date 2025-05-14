@@ -1,36 +1,29 @@
 import datetime
 import json
-import os
 import requests
 from typing import Dict, List, Optional, Any, Tuple
 
 class HackerNewsAPI:
     BASE_URL = "https://hckrnews.com/data/{}.js"
+    # In-memory cache for stories
+    _story_cache = {}
     
-    @staticmethod
-    def get_stories(date: Optional[datetime.date] = None) -> List[Dict[str, Any]]:
+    @classmethod
+    def get_stories(cls, date: Optional[datetime.date] = None) -> List[Dict[str, Any]]:
         """Fetch stories from HackerNews API for a specific date."""
         if date is None:
             date = datetime.date.today()
             
         date_str = date.strftime("%Y%m%d")
+        cache_key = date.strftime("%Y-%m-%d")
         
-        # First try to load from local data directory
-        local_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", f"{date_str}.js")
-        if os.path.exists(local_file):
-            try:
-                with open(local_file, 'r') as f:
-                    data = json.load(f)
-                if isinstance(data, list):
-                    print(f"Loaded {len(data)} stories from local file for {date_str}")
-                    return data
-            except Exception as e:
-                print(f"Error reading local file for {date_str}: {e}")
-        else:
-            print(f"No local file found for {date_str} at {local_file}")
+        # First check if we have data in our in-memory cache
+        if cache_key in cls._story_cache:
+            print(f"Loaded {len(cls._story_cache[cache_key])} stories from memory cache for {date_str}")
+            return cls._story_cache[cache_key]
         
-        # If local file doesn't exist or has invalid data, fetch from API
-        url = HackerNewsAPI.BASE_URL.format(date_str)
+        # Otherwise fetch from API
+        url = cls.BASE_URL.format(date_str)
         print(f"Fetching from API: {url}")
         
         try:
@@ -43,7 +36,9 @@ class HackerNewsAPI:
             if not isinstance(data, list):
                 print(f"API returned unexpected data format: {type(data)}")
                 return []
-                
+            
+            # Store in memory cache
+            cls._story_cache[cache_key] = data
             return data
             
         except requests.exceptions.HTTPError as e:
@@ -64,6 +59,32 @@ class HackerNewsAPI:
         except Exception as e:
             print(f"Unexpected error fetching data: {e}")
             return []
+    
+    @classmethod
+    def cache_stories(cls, date: datetime.date, stories: List[Dict[str, Any]]) -> None:
+        """Cache stories for a specific date."""
+        cache_key = date.strftime("%Y-%m-%d")
+        cls._story_cache[cache_key] = stories
+        
+    @classmethod
+    def get_cached_stories(cls, date: datetime.date) -> Optional[List[Dict[str, Any]]]:
+        """Get stories from cache if they exist."""
+        cache_key = date.strftime("%Y-%m-%d")
+        return cls._story_cache.get(cache_key)
+    
+    @classmethod
+    def clear_cache_for_date(cls, date: datetime.date) -> bool:
+        """Clear cache for a specific date."""
+        cache_key = date.strftime("%Y-%m-%d")
+        if cache_key in cls._story_cache:
+            del cls._story_cache[cache_key]
+            return True
+        return False
+    
+    @classmethod
+    def clear_all_cache(cls) -> None:
+        """Clear all cached stories."""
+        cls._story_cache.clear()
     
     @staticmethod
     def get_comment_url(story_id: str) -> str:
