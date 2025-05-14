@@ -63,3 +63,7 @@ hn
 
 Data is fetched from the hckrnews.com API:
 `https://hckrnews.com/data/YYYYMMDD.js`
+
+## Limitations
+
+- The latest available data is typically 2 days behind the current date due to API limitations
