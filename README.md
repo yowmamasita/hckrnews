@@ -7,10 +7,23 @@ A command line tool to display the top stories from Hacker News using the API pr
 ## Features
 
 - View top stories from Hacker News in your terminal
-- Color-coded titles based on story score
+- Color-coded titles based on story score:
+  - Green: Top 10 stories
+  - Yellow: Stories ranked 11-20
+  - Blue: Stories in the top 50% (excluding top 20)
+  - White: Homepage stories
+  - Grey: Other stories
 - 2-column layout showing titles and points/comments
-- Various filtering options (top 10, top 20, etc.)
+- Various filtering options:
+  - Top 10 stories
+  - Top 20 stories
+  - Top 50% of stories
+  - All stories
 - Navigation between different days
+- Multiple sorting options:
+  - By points
+  - By comments
+  - By submission date
 - Keyboard shortcuts for all actions
 
 ## Installation
@@ -41,8 +54,8 @@ hn
 
 - `q` - Quit the application
 - `r` - Refresh current view
-- `j` - Previous day
-- `k` - Next day
+- `j` - Previous day (earlier)
+- `k` - Next day (later)
 - `space` - Open story URL in browser
 - `l` - Open comments page in browser
 - `1` - Show top 10 stories
@@ -52,6 +65,7 @@ hn
 - `p` - Sort by points
 - `c` - Sort by comments
 - `d` - Sort by date
+- Arrow keys - Navigate between stories
 
 ### Interaction
 
