@@ -133,10 +133,6 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
         # Format dates for cache keys
         today_cache_key = today.strftime("%Y-%m-%d")
         yesterday_cache_key = yesterday.strftime("%Y-%m-%d")
-        today_str = today.strftime("%Y%m%d")
-        yesterday_str = yesterday.strftime("%Y%m%d")
-        
-        print(f"Fetching stories for homepage (today and yesterday)...")
         
         try:
             # Fetch homepage which contains both today's and yesterday's stories
@@ -148,8 +144,6 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
             today_stories = [story for story in all_stories if story.get("from_today")]
             yesterday_stories = [story for story in all_stories if not story.get("from_today")]
             
-            print(f"Found {len(today_stories)} stories for today and {len(yesterday_stories)} stories for yesterday")
-            
             # Remove the temporary from_today field before caching
             for story in today_stories + yesterday_stories:
                 if "from_today" in story:
@@ -159,19 +153,16 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
             if today_stories:
                 HackerNewsAPI.cache_stories(today, today_stories)
                 updated_dates.append(today_cache_key)
-                print(f"Successfully cached {len(today_stories)} stories for {today_str}")
             
             if yesterday_stories:
                 HackerNewsAPI.cache_stories(yesterday, yesterday_stories)
                 updated_dates.append(yesterday_cache_key)
-                print(f"Successfully cached {len(yesterday_stories)} stories for {yesterday_str}")
             
             # If we need more days, handle them individually
             for i in range(2, start_day + days):
                 date = today - datetime.timedelta(days=i)
                 date_str = date.strftime("%Y%m%d")
                 cache_key = date.strftime("%Y-%m-%d")
-                print(f"Fetching stories for {date_str}...")
                 
                 try:
                     # Fetch specific date
@@ -186,12 +177,11 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
                     # Store in API's in-memory cache
                     HackerNewsAPI.cache_stories(date, stories)
                     updated_dates.append(cache_key)
-                    print(f"Successfully cached {len(stories)} stories for {date_str}")
-                except Exception as e:
-                    print(f"Error updating stories for {date_str}: {e}")
+                except Exception:
+                    pass
         
-        except Exception as e:
-            print(f"Error fetching homepage stories: {e}")
+        except Exception:
+            pass
     
     else:
         # Handle individual days as before
@@ -201,7 +191,6 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
             # Format for URL path needs to be YYYYMMDD
             date_str = date.strftime("%Y%m%d")
             cache_key = date.strftime("%Y-%m-%d")
-            print(f"Fetching stories for {date_str}...")
             
             try:
                 # For yesterday (i=1), we need to use the date in URL
@@ -221,8 +210,7 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
                 # Store in API's in-memory cache
                 HackerNewsAPI.cache_stories(date, stories)
                 updated_dates.append(cache_key)
-                print(f"Successfully cached {len(stories)} stories for {date_str}")
-            except Exception as e:
-                print(f"Error updating stories for {date_str}: {e}")
+            except Exception:
+                pass
     
     return updated_dates

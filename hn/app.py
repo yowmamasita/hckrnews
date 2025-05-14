@@ -133,14 +133,11 @@ class HackerNewsApp(App):
         """Initial data load when the app starts."""
         # Update stories on app start (fetch and cache latest 2 days)
         try:
-            print("Updating stories cache for today and yesterday...")
             updated_dates = update_stories(days=2)
-            print(f"Updated cache for dates: {updated_dates}")
             
             # Only after update is complete, refresh the display
             self.load_new_stories()
-        except Exception as e:
-            print(f"Error updating stories cache: {e}")
+        except Exception:
             # Even if update fails, try to refresh from whatever might be in the cache
             self.refresh_stories()
             
@@ -162,8 +159,8 @@ class HackerNewsApp(App):
             try:
                 # Update just this specific day
                 update_stories(days=1, start_day=day_diff)
-            except Exception as e:
-                print(f"Error updating stories during refresh: {e}")
+            except Exception:
+                pass
                 
         self.refresh_stories()
 
@@ -272,8 +269,6 @@ class HackerNewsApp(App):
         """Fetch and display stories for the current date."""
         # Format the date string for API and caching (YYYY-MM-DD for cache key)
         date_str = self.current_date.strftime("%Y-%m-%d")
-        
-        print(f"Refreshing stories for {date_str}")
         
         # Check if we already have cached data for this date
         cached_stories = self.api.get_cached_stories(self.current_date)
@@ -479,13 +474,6 @@ class HackerNewsApp(App):
 
             total_stories = len(self.stories)
 
-            # Color coding based on specs:
-            # - top 10 of the day - green
-            # - top 11-20 of the day - yellow
-            # - the top 50% of the day (exclude the top 20) - blue
-            # - the rest of the homepage stories - white
-            # - the rest of the stories - grey
-
             if story_rank < 10 and story_rank >= 0:
                 return Style(color="bright_green")
             elif story_rank < 20:
@@ -496,9 +484,8 @@ class HackerNewsApp(App):
                 return Style(color="white")
             else:
                 return Style(color="bright_black")
-        except Exception as e:
+        except Exception:
             # In case of any error, default to white
-            print(f"Error getting style: {e}")
             return Style(color="white")
 
     def action_open_comments(self) -> None:
@@ -549,10 +536,9 @@ class HackerNewsApp(App):
                     # Directly construct the HN comments URL
                     story_id = str(story_id)
                     comment_url = f"https://news.ycombinator.com/item?id={story_id}"
-                    print(f"Opening comments URL: {comment_url}")
                     webbrowser.open(comment_url)
-        except Exception as e:
-            print(f"Error opening {target}: {e}")
+        except Exception:
+            pass
 
     def on_data_table_row_selected(self, event) -> None:
         """Handle row selection event."""
@@ -579,10 +565,9 @@ class HackerNewsApp(App):
                     # Directly construct the HN comments URL
                     story_id = str(story_id)
                     comment_url = f"https://news.ycombinator.com/item?id={story_id}"
-                    print(f"Opening comments URL: {comment_url}")
                     webbrowser.open(comment_url)
-        except Exception as e:
-            print(f"Error handling row selection: {e}")
+        except Exception:
+            pass
 
     def on_data_table_key(self, event) -> None:
         """Handle keyboard events in the DataTable."""

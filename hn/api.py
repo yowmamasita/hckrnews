@@ -5,7 +5,6 @@ from typing import Dict, List, Optional, Any, Tuple
 
 class HackerNewsAPI:
     BASE_URL = "https://hckrnews.com/data/{}.js"
-    # In-memory cache for stories
     _story_cache = {}
     
     @classmethod
@@ -17,14 +16,10 @@ class HackerNewsAPI:
         date_str = date.strftime("%Y%m%d")
         cache_key = date.strftime("%Y-%m-%d")
         
-        # First check if we have data in our in-memory cache
         if cache_key in cls._story_cache:
-            print(f"Loaded {len(cls._story_cache[cache_key])} stories from memory cache for {date_str}")
             return cls._story_cache[cache_key]
         
-        # Otherwise fetch from API
         url = cls.BASE_URL.format(date_str)
-        print(f"Fetching from API: {url}")
         
         try:
             headers = {"User-Agent": "HackerNewsClient/1.0"}
@@ -34,30 +29,22 @@ class HackerNewsAPI:
             data = json.loads(response.text)
             
             if not isinstance(data, list):
-                print(f"API returned unexpected data format: {type(data)}")
                 return []
             
-            # Store in memory cache
             cls._story_cache[cache_key] = data
             return data
             
-        except requests.exceptions.HTTPError as e:
-            print(f"HTTP Error: {e}")
+        except requests.exceptions.HTTPError:
             return []
-        except requests.exceptions.ConnectionError as e:
-            print(f"Connection Error: {e}")
+        except requests.exceptions.ConnectionError:
             return []
-        except requests.exceptions.Timeout as e:
-            print(f"Timeout Error: {e}")
+        except requests.exceptions.Timeout:
             return []
-        except requests.exceptions.RequestException as e:
-            print(f"Request Error: {e}")
+        except requests.exceptions.RequestException:
             return []
-        except json.JSONDecodeError as e:
-            print(f"JSON Decode Error: {e}")
+        except json.JSONDecodeError:
             return []
-        except Exception as e:
-            print(f"Unexpected error fetching data: {e}")
+        except Exception:
             return []
     
     @classmethod
