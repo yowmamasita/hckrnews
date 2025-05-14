@@ -1,8 +1,17 @@
 import sys
 import webbrowser
 import time
+import pytz
 from datetime import date, timedelta, datetime
 from functools import partial
+
+def get_pdt_now():
+    """Get current time in PDT timezone."""
+    return datetime.now(pytz.timezone('America/Los_Angeles'))
+
+def get_pdt_today():
+    """Get today's date in PDT timezone."""
+    return get_pdt_now().date()
 
 from textual.app import App, ComposeResult
 from textual.containers import Grid, Center
@@ -95,8 +104,8 @@ class HackerNewsApp(App):
 
     def __init__(self):
         super().__init__()
-        # Set default date to today since we now have current data
-        self.current_date = date.today()
+        # Set default date to today in PDT timezone
+        self.current_date = get_pdt_today()
         self.filter_mode = "all"     # Default filter mode - show all stories
         self.sort_mode = "date"      # Default sort mode (points, comments, or date)
         self.stories = []
@@ -149,7 +158,7 @@ class HackerNewsApp(App):
         self.api.clear_cache_for_date(self.current_date)
             
         # If refreshing today or yesterday, update from the website
-        today = date.today()
+        today = get_pdt_today()
         yesterday = today - timedelta(days=1)
         
         if self.current_date == today or self.current_date == yesterday:
@@ -166,8 +175,8 @@ class HackerNewsApp(App):
 
     def action_next_day(self) -> None:
         """Go to the next day."""
-        # Latest available data is today
-        latest_available = date.today()
+        # Latest available data is today in PDT timezone
+        latest_available = get_pdt_today()
 
         if self.current_date < latest_available:
             self.current_date += timedelta(days=1)
@@ -434,7 +443,8 @@ class HackerNewsApp(App):
     def format_time_ago(self, timestamp: int) -> str:
         """Format a Unix timestamp as a human-readable 'time ago' string."""
         try:
-            now = int(time.time())
+            # Use PDT timezone for 'now'
+            now = int(get_pdt_now().timestamp())
             diff = now - timestamp
 
             if diff < 60:

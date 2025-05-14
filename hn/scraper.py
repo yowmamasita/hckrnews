@@ -5,7 +5,16 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any, Optional
+import pytz
 from .api import HackerNewsAPI
+
+def get_pdt_now():
+    """Get current time in PDT timezone."""
+    return datetime.datetime.now(pytz.timezone('America/Los_Angeles'))
+
+def get_pdt_today():
+    """Get today's date in PDT timezone."""
+    return get_pdt_now().date()
 
 def fetch_stories(date_str: Optional[str] = None) -> str:
     """Fetch HTML from hckrnews.com for a given date."""
@@ -40,8 +49,8 @@ def parse_stories(html: str) -> List[Dict[str, Any]]:
     # Flag to track if we're processing stories from today or yesterday based on separators
     from_today = True
     
-    # Get today's date at midnight for timestamp comparison
-    today = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    # Get today's date at midnight in PDT for timestamp comparison
+    today = get_pdt_now().replace(hour=0, minute=0, second=0, microsecond=0)
     today_timestamp = int(today.timestamp())
     
     for item in list_items:
@@ -127,7 +136,7 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
     
     # If we're updating today and yesterday in one go, we can optimize by fetching once
     if start_day == 0 and days >= 2:
-        today = datetime.date.today()
+        today = get_pdt_today()
         yesterday = today - datetime.timedelta(days=1)
         
         # Format dates for cache keys
@@ -186,7 +195,7 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
     else:
         # Handle individual days as before
         for i in range(start_day, start_day + days):
-            date = datetime.date.today() - datetime.timedelta(days=i)
+            date = get_pdt_today() - datetime.timedelta(days=i)
             
             # Format for URL path needs to be YYYYMMDD
             date_str = date.strftime("%Y%m%d")

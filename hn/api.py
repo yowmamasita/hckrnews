@@ -1,7 +1,12 @@
 import datetime
 import json
 import requests
+import pytz
 from typing import Dict, List, Optional, Any, Tuple
+
+def get_pdt_today():
+    """Get today's date in PDT timezone."""
+    return datetime.datetime.now(pytz.timezone('America/Los_Angeles')).date()
 
 class HackerNewsAPI:
     BASE_URL = "https://hckrnews.com/data/{}.js"
@@ -11,7 +16,7 @@ class HackerNewsAPI:
     def get_stories(cls, date: Optional[datetime.date] = None) -> List[Dict[str, Any]]:
         """Fetch stories from HackerNews API for a specific date."""
         if date is None:
-            date = datetime.date.today()
+            date = get_pdt_today()
             
         date_str = date.strftime("%Y%m%d")
         cache_key = date.strftime("%Y-%m-%d")
