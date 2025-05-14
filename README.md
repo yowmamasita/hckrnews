@@ -10,8 +10,7 @@ A command line tool to display the top stories from Hacker News using the API pr
 - Color-coded titles based on story score:
   - Green: Top 10 stories
   - Yellow: Stories ranked 11-20
-  - Blue: Stories in the top 50% (excluding top 20)
-  - White: Homepage stories
+  - Purple: Stories in the top 50% (excluding top 20)
   - Grey: Other stories
 - 2-column layout showing titles and points/comments
 - Various filtering options:
@@ -52,12 +51,10 @@ hn
 
 ### Keyboard Shortcuts
 
-- `q` - Quit the application
-- `r` - Refresh current view
 - `j` - Previous day (earlier)
 - `k` - Next day (later)
-- `space` - Open story URL in browser
 - `l` - Open comments page in browser
+- `space` - Open story URL in browser
 - `1` - Show top 10 stories
 - `2` - Show top 20 stories
 - `3` - Show top 50% stories
@@ -65,19 +62,11 @@ hn
 - `p` - Sort by points
 - `c` - Sort by comments
 - `d` - Sort by date
+- `r` - Refresh current view
+- `q` - Quit the application
 - Arrow keys - Navigate between stories
-
-### Interaction
-
-- Select a story title (first column) to open the story URL in your browser
-- Select the points/comments cell (second column) to open the comments page for that story
-- Use up/down arrow keys to navigate between stories
 
 ## Data Source
 
 Data is fetched from the hckrnews.com API:
 `https://hckrnews.com/data/YYYYMMDD.js`
-
-## Limitations
-
-- The latest available data is typically 2 days behind the current date due to API limitations
