@@ -1,4 +1,4 @@
-# HN - Hacker News CLI Viewer
+# hn - Hacker News CLI Viewer
 
 A command line tool to display the top stories from Hacker News using the API provided by hckrnews.com.
 
