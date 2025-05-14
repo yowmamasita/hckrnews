@@ -2,6 +2,8 @@
 
 A command line tool to display the top stories from Hacker News using the API provided by hckrnews.com.
 
+![Hacker News CLI Screenshot](screenshot.png)
+
 ## Features
 
 - View top stories from Hacker News in your terminal
@@ -39,18 +41,23 @@ hn
 
 - `q` - Quit the application
 - `r` - Refresh current view
-- `j` - Jump to next day
-- `k` - Jump to previous day
-- `1` - Show top 10 stories (default)
+- `j` - Previous day
+- `k` - Next day
+- `space` - Open story URL in browser
+- `l` - Open comments page in browser
+- `1` - Show top 10 stories
 - `2` - Show top 20 stories
 - `3` - Show top 50% stories
-- `4` - Show homepage stories only
-- `5` - Show all stories
+- `4` - Show all stories
+- `p` - Sort by points
+- `c` - Sort by comments
+- `d` - Sort by date
 
 ### Interaction
 
 - Select a story title (first column) to open the story URL in your browser
 - Select the points/comments cell (second column) to open the comments page for that story
+- Use up/down arrow keys to navigate between stories
 
 ## Data Source
 
