@@ -423,20 +423,40 @@ class HackerNewsApp(App):
             table.add_row(title_text, points_comments_text)
 
     def filter_stories(self) -> list:
-        """Filter stories based on the current filter mode."""
+        """Filter stories based on the current filter mode using points regardless of sort mode."""
         if not self.stories:
             return []
 
         # Filter out stories with undefined titles
         valid_stories = [story for story in self.stories if story.get("link_text")]
-
+        
+        # Create a points-based ranking of stories
+        # This ensures filtering by top N is always based on points
+        points_sorted = sorted(
+            valid_stories,
+            key=lambda x: self._get_int_value(x, "points"),
+            reverse=True
+        )
+        
+        # Get the original indices of the points-sorted stories
+        points_sorted_ids = [story.get("id") for story in points_sorted]
+        
         if self.filter_mode == "top_10":
-            return valid_stories[:10]
+            # Get the IDs of the top 10 stories by points
+            top_ids = set(story.get("id") for story in points_sorted[:10])
+            # Filter the current sorted view to only include these stories
+            return [story for story in self.stories if story.get("id") in top_ids]
         elif self.filter_mode == "top_20":
-            return valid_stories[:20]
+            # Get the IDs of the top 20 stories by points
+            top_ids = set(story.get("id") for story in points_sorted[:20])
+            # Filter the current sorted view to only include these stories
+            return [story for story in self.stories if story.get("id") in top_ids]
         elif self.filter_mode == "top_half":
+            # Get the IDs of the top half stories by points
             half_count = len(valid_stories) // 2
-            return valid_stories[:half_count]
+            top_ids = set(story.get("id") for story in points_sorted[:half_count])
+            # Filter the current sorted view to only include these stories
+            return [story for story in self.stories if story.get("id") in top_ids]
         else:  # "all"
             return valid_stories
 
