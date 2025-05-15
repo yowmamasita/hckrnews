@@ -4,6 +4,10 @@ A command line tool to display the top stories from Hacker News using the API pr
 
 ![Hacker News CLI Screenshot](screenshot.png)
 
+## License
+
+This project is licensed under the [MIT License](LICENSE.md) - see the LICENSE.md file for details.
+
 ## Features
 
 - View top stories from Hacker News in your terminal
