@@ -1,5 +1,5 @@
 """
-HackerNews scraper module for fetching and parsing stories from hckrnews.com.
+Hckrnews scraper module for fetching and parsing stories from hckrnews.com.
 """
 import datetime
 import requests
@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from typing import List, Dict, Any, Optional
 
 from .utils import get_pdt_now, get_pdt_today, format_date_for_url, format_date_for_cache_key
-from .api import HackerNewsAPI
+from .api import HckrnewsAPI
 
 def fetch_stories(date_str: Optional[str] = None) -> str:
     """Fetch HTML from hckrnews.com for a given date."""
@@ -16,7 +16,7 @@ def fetch_stories(date_str: Optional[str] = None) -> str:
     else:
         url = f"https://hckrnews.com/{date_str}"
     
-    headers = {"User-Agent": "HackerNewsClient/1.0"}
+    headers = {"User-Agent": "HckrnewsClient/1.0"}
     response = requests.get(url, headers=headers, timeout=10)
     response.raise_for_status()
     return response.text
@@ -110,11 +110,11 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
                     del story["from_today"]
             
             if today_stories:
-                HackerNewsAPI.cache_stories(today, today_stories)
+                HckrnewsAPI.cache_stories(today, today_stories)
                 updated_dates.append(today_cache_key)
             
             if yesterday_stories:
-                HackerNewsAPI.cache_stories(yesterday, yesterday_stories)
+                HckrnewsAPI.cache_stories(yesterday, yesterday_stories)
                 updated_dates.append(yesterday_cache_key)
             
             for i in range(2, start_day + days):
@@ -130,7 +130,7 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
                         if "from_today" in story:
                             del story["from_today"]
                     
-                    HackerNewsAPI.cache_stories(date, stories)
+                    HckrnewsAPI.cache_stories(date, stories)
                     updated_dates.append(cache_key)
                 except Exception:
                     pass
@@ -156,7 +156,7 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
                     if "from_today" in story:
                         del story["from_today"]
                 
-                HackerNewsAPI.cache_stories(date, stories)
+                HckrnewsAPI.cache_stories(date, stories)
                 updated_dates.append(cache_key)
             except Exception:
                 pass

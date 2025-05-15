@@ -1,4 +1,4 @@
-# hn - Hacker News CLI Viewer
+# hckrnews - Hacker News CLI Viewer
 
 A command line tool to display the top stories from Hacker News using the API provided by hckrnews.com.
 
@@ -36,13 +36,13 @@ This project is licensed under the [MIT License](LICENSE.md) - see the LICENSE.m
 Install directly from PyPI:
 
 ```bash
-pip install hn
+pip install hckrnews
 ```
 
 Or if you're using uv:
 
 ```bash
-uv pip install hn
+uv pip install hckrnews
 ```
 
 ### Development Installation
@@ -50,23 +50,23 @@ uv pip install hn
 Clone this repository and install in development mode:
 
 ```bash
-cd hn
+cd hckrnews
 pip install -e .
 ```
 
 Or if you're using uv:
 
 ```bash
-cd hn
+cd hckrnews
 uv pip install -e .
 ```
 
 ## Usage
 
-Simply run the `hn` command to start the application:
+Simply run the `hckrnews` command to start the application:
 
 ```bash
-hn
+hckrnews
 ```
 
 ### Keyboard Shortcuts

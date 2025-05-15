@@ -5,13 +5,13 @@ from typing import Dict, List, Optional, Any
 
 from .utils import get_pdt_today, format_date_for_url, format_date_for_cache_key
 
-class HackerNewsAPI:
+class HckrnewsAPI:
     BASE_URL = "https://hckrnews.com/data/{}.js"
     _story_cache = {}
     
     @classmethod
     def get_stories(cls, date: Optional[datetime.date] = None) -> List[Dict[str, Any]]:
-        """Fetch stories from HackerNews API for a specific date."""
+        """Fetch stories from Hckrnews API for a specific date."""
         if date is None:
             date = get_pdt_today()
             
@@ -24,7 +24,7 @@ class HackerNewsAPI:
         url = cls.BASE_URL.format(date_str)
         
         try:
-            headers = {"User-Agent": "HackerNewsClient/1.0"}
+            headers = {"User-Agent": "HckrnewsClient/1.0"}
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             

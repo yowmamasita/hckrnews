@@ -1,5 +1,5 @@
 [project]
-name = "hn"
+name = "hckrnews"
 version = "0.1.0"
 description = "Command line tool to display HN top stories"
 readme = "README.md"
@@ -13,4 +13,4 @@ dependencies = [
 ]
 
 [project.scripts]
-hn = "hn.app:main"
+hckrnews = "hckrnews.app:main"

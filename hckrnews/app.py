@@ -10,7 +10,7 @@ from rich.text import Text
 from .utils import get_pdt_today, get_int_value
 from .ui_utils import prepare_loading_ui, get_story_style, filter_stories
 from .scraper import update_stories
-from .api import HackerNewsAPI
+from .api import HckrnewsAPI
 
 class HNFooter(Footer):
     """Custom footer that ensures the most important bindings are always visible"""
@@ -30,7 +30,7 @@ class HNFooter(Footer):
             "quit",
         }
 
-class HackerNewsApp(App):
+class HckrnewsApp(App):
     CSS = """
     Screen {
         layout: grid;
@@ -75,7 +75,7 @@ class HackerNewsApp(App):
         self.filter_mode = "all"
         self.sort_mode = "date"
         self.stories = []
-        self.api = HackerNewsAPI()
+        self.api = HckrnewsAPI()
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
@@ -271,9 +271,9 @@ class HackerNewsApp(App):
         }
 
         if status:
-            self.title = f"HN: {date_str} | {status}"
+            self.title = f"hckrnews: {date_str} | {status}"
         else:
-            self.title = f"HN: {date_str} | {filter_names[self.filter_mode]} | Sort: {sort_names[self.sort_mode]}"
+            self.title = f"hckrnews: {date_str} | {filter_names[self.filter_mode]} | Sort: {sort_names[self.sort_mode]}"
 
     def populate_table(self, refresh_data: bool = True) -> None:
         """Populate the table with filtered stories."""
@@ -403,7 +403,7 @@ class HackerNewsApp(App):
             event.stop()
 
 def main():
-    app = HackerNewsApp()
+    app = HckrnewsApp()
     app.run()
 
 if __name__ == "__main__":

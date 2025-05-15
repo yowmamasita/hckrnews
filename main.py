@@ -1,4 +1,4 @@
-from hn.app import main as app_main
+from hckrnews.app import main as app_main
 
 def main():
     app_main()
