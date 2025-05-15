@@ -129,9 +129,8 @@ class HckrnewsApp(App):
             yesterday = today - timedelta(days=1)
 
             if self.current_date == today or self.current_date == yesterday:
-                day_diff = (today - self.current_date).days
                 try:
-                    update_stories(days=1, start_day=day_diff)
+                    update_stories(days=2, start_day=0)
                 except Exception:
                     pass
 

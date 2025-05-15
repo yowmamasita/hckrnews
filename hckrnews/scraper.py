@@ -139,26 +139,45 @@ def update_stories(days: int = 2, start_day: int = 0) -> List[str]:
             pass
 
     else:
-        for i in range(start_day, start_day + days):
-            date = get_pdt_today() - datetime.timedelta(days=i)
-
-            date_str = format_date_for_url(date)
-            cache_key = format_date_for_cache_key(date)
-
+        if start_day == 1 and days == 1:
             try:
-                html = fetch_stories(None if i == 0 else date_str)
-                stories = parse_stories(html)
-
-                if i == 0:
-                    stories = [story for story in stories if story.get("from_today")]
-
-                for story in stories:
+                today = get_pdt_today()
+                yesterday = today - datetime.timedelta(days=1)
+                
+                html = fetch_stories(None)
+                all_stories = parse_stories(html)
+                
+                yesterday_stories = [story for story in all_stories if not story.get("from_today")]
+                
+                for story in yesterday_stories:
                     if "from_today" in story:
                         del story["from_today"]
-
-                HckrnewsAPI.cache_stories(date, stories)
-                updated_dates.append(cache_key)
+                
+                yesterday_cache_key = format_date_for_cache_key(yesterday)
+                HckrnewsAPI.cache_stories(yesterday, yesterday_stories)
+                updated_dates.append(yesterday_cache_key)
             except Exception:
                 pass
+        else:
+            for i in range(start_day, start_day + days):
+                date = get_pdt_today() - datetime.timedelta(days=i)
+                date_str = format_date_for_url(date)
+                cache_key = format_date_for_cache_key(date)
+                
+                try:
+                    html = fetch_stories(None if i == 0 else date_str)
+                    stories = parse_stories(html)
+                    
+                    if i == 0:
+                        stories = [story for story in stories if story.get("from_today")]
+                    
+                    for story in stories:
+                        if "from_today" in story:
+                            del story["from_today"]
+                    
+                    HckrnewsAPI.cache_stories(date, stories)
+                    updated_dates.append(cache_key)
+                except Exception:
+                    pass
 
     return updated_dates

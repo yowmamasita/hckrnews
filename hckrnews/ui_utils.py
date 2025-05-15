@@ -10,11 +10,11 @@ from textual.widgets import DataTable
 def prepare_loading_ui(table: DataTable, message: str = "Fetching Hacker News stories...") -> None:
     """Show loading message in DataTable."""
     table.clear()
-    
-    # Create a simple text message instead of using a spinner 
+
+    # Create a simple text message instead of using a spinner
     # (spinners require a console which we don't have direct access to here)
-    loading_text = Text(f"Loading... {message}", style="bold green")
-    
+    loading_text = Text(message, style="bold green")
+
     table.add_row(loading_text, "")
 
 def get_story_style(story: Dict[str, Any], all_stories: List[Dict[str, Any]]) -> Style:
@@ -48,20 +48,20 @@ def get_story_style(story: Dict[str, Any], all_stories: List[Dict[str, Any]]) ->
     except Exception:
         return Style(color="white")
 
-def filter_stories(stories: List[Dict[str, Any]], filter_mode: str, 
+def filter_stories(stories: List[Dict[str, Any]], filter_mode: str,
                   value_getter: Callable[[Dict[str, Any], str], int]) -> List[Dict[str, Any]]:
     """Filter stories based on the current filter mode."""
     if not stories:
         return []
 
     valid_stories = [story for story in stories if story.get("link_text")]
-    
+
     points_sorted = sorted(
         valid_stories,
         key=lambda x: value_getter(x, "points"),
         reverse=True
     )
-    
+
     if filter_mode == "top_10":
         top_ids = set(story.get("id") for story in points_sorted[:10])
         return [story for story in stories if story.get("id") in top_ids]
