@@ -31,7 +31,23 @@ This project is licensed under the [MIT License](LICENSE.md) - see the LICENSE.m
 
 ## Installation
 
-Clone this repository and install with pip:
+### From PyPI (Recommended)
+
+Install directly from PyPI:
+
+```bash
+pip install hn
+```
+
+Or if you're using uv:
+
+```bash
+uv pip install hn
+```
+
+### Development Installation
+
+Clone this repository and install in development mode:
 
 ```bash
 cd hn
