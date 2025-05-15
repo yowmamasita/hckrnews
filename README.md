@@ -90,3 +90,38 @@ hckrnews
 
 Data is fetched from the hckrnews.com API:
 `https://hckrnews.com/data/YYYYMMDD.js`
+
+## Development Tools
+
+### Version Bumping
+
+The project includes a version bumping script that helps maintain consistent versioning across the codebase. It updates:
+
+- Version in pyproject.toml
+- User-Agent version in API requests
+- Git commits (optional)
+- Git tags (optional)
+
+Usage:
+
+```bash
+# Increment patch version (0.1.0 -> 0.1.1)
+python bump_version.py patch
+
+# Increment minor version (0.1.0 -> 0.2.0)
+python bump_version.py minor
+
+# Increment major version (0.1.0 -> 1.0.0)
+python bump_version.py major
+
+# Set specific version
+python bump_version.py --set 0.2.0
+
+# Increment version and create git commit
+python bump_version.py patch --commit
+
+# Increment version, create commit and git tag
+python bump_version.py patch --tag
+```
+
+When using the `--tag` option, the script automatically creates a commit with message "chore: version bump to x.y.z" before tagging.
