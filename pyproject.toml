@@ -10,6 +10,7 @@ dependencies = [
     "textual>=3.2.0",
     "beautifulsoup4>=4.13.4",
     "pytz>=2025.2",
+    "newspaper3k>=0.2.8",
 ]
 
 [project.scripts]

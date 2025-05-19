@@ -11,6 +11,7 @@ from .utils import get_pdt_today, get_int_value
 from .ui_utils import prepare_loading_ui, get_story_style, filter_stories
 from .scraper import update_stories
 from .api import HckrnewsAPI
+from .article_viewer import ArticleScreen
 
 class HNFooter(Footer):
     """Custom footer that ensures the most important bindings are always visible"""
@@ -24,6 +25,7 @@ class HNFooter(Footer):
         self.highlight_keys = {
             "open_story",
             "open_comments",
+            "view_article",
             "prev_day",
             "next_day",
             "refresh",
@@ -55,6 +57,7 @@ class HckrnewsApp(App):
 
         Binding("l", "open_comments", "Comments"),
         Binding("space", "open_story", "Story"),
+        Binding("enter", "view_article", "View"),
 
         Binding("1", "show_top_10", "Top 10"),
         Binding("2", "show_top_20", "Top 20"),
@@ -322,6 +325,22 @@ class HckrnewsApp(App):
             table.move_cursor(row=0, column=0)
         self.open_selected_item("story")
 
+    def action_view_article(self) -> None:
+        """View article content for the selected story."""
+        table = self.query_one(DataTable)
+        if table.cursor_row is None and len(table.rows) > 0:
+            table.move_cursor(row=0, column=0)
+        if table.cursor_row is None:
+            return
+        filtered_stories = filter_stories(self.stories, self.filter_mode, get_int_value)
+        row_index = table.cursor_row
+        if row_index >= len(filtered_stories):
+            return
+        story = filtered_stories[row_index]
+        link = story.get("link")
+        if link and link.strip():
+            self.push_screen(ArticleScreen(link))
+
     def open_selected_item(self, target: str) -> None:
         """Open either the story or comments for the selected row."""
         try:
@@ -389,6 +408,10 @@ class HckrnewsApp(App):
             self.action_open_story()
             event.prevent_default()
             event.stop()
+        elif key == "enter":
+            self.action_view_article()
+            event.prevent_default()
+            event.stop()
 
     def on_key(self, event) -> None:
         """Global key handler for the entire app."""
@@ -398,6 +421,10 @@ class HckrnewsApp(App):
             event.stop()
         elif event.key == Keys.Space:
             self.action_open_story()
+            event.prevent_default()
+            event.stop()
+        elif event.key == Keys.Enter:
+            self.action_view_article()
             event.prevent_default()
             event.stop()
 
