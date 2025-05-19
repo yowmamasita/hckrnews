@@ -71,8 +71,8 @@ hckrnews
 
 ### Keyboard Shortcuts
 
-- `j` - Previous day (earlier)
-- `k` - Next day (later)
+- `j` or left arrow - Previous day (earlier)
+- `k` or right arrow - Next day (later)
 - `l` - Open comments page in browser
 - `space` - Open story URL in browser
 - `1` - Show top 10 stories
@@ -84,7 +84,7 @@ hckrnews
 - `d` - Sort by date
 - `r` - Refresh current view
 - `q` - Quit the application
-- Arrow keys - Navigate between stories
+- Up/Down arrows - Navigate between stories
 
 ## Data Source
 
