@@ -52,6 +52,8 @@ class HckrnewsApp(App):
 
         Binding("j", "prev_day", "Earlier Day"),
         Binding("k", "next_day", "Later Day"),
+        Binding("left", "prev_day", show=False),
+        Binding("right", "next_day", show=False),
 
         Binding("l", "open_comments", "Comments"),
         Binding("space", "open_story", "Story"),
@@ -389,6 +391,14 @@ class HckrnewsApp(App):
             self.action_open_story()
             event.prevent_default()
             event.stop()
+        elif key == "left":
+            self.action_prev_day()
+            event.prevent_default()
+            event.stop()
+        elif key == "right":
+            self.action_next_day()
+            event.prevent_default()
+            event.stop()
 
     def on_key(self, event) -> None:
         """Global key handler for the entire app."""
@@ -398,6 +408,14 @@ class HckrnewsApp(App):
             event.stop()
         elif event.key == Keys.Space:
             self.action_open_story()
+            event.prevent_default()
+            event.stop()
+        elif event.key == Keys.Left or event.key == "left":
+            self.action_prev_day()
+            event.prevent_default()
+            event.stop()
+        elif event.key == Keys.Right or event.key == "right":
+            self.action_next_day()
             event.prevent_default()
             event.stop()
 
